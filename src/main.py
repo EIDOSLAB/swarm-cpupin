@@ -18,11 +18,12 @@ def read_gpu_uids():
     resources = map(lambda r: r.replace('gpu=', ''), resources)
     return list(resources)
 
-def get_gpu_uids(container):
+def get_container_gpus(container):
     config = client.api.inspect_container(actor['ID'])['Config']
     env = config['Env']
-    gpus = list(filter(lambda venv: "DOCKER_RESOURCE_GPU" in venv, env))
-    return gpus
+    gpus = filter(lambda venv: "DOCKER_RESOURCE_GPU" in venv, env)
+    gpus = map(lambda venv: venv.replace("DOCKER_RESOURCE_GPU=", ""), gpus)
+    return list(gpus)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Docker Swarm cpu auto-pinner",
@@ -48,8 +49,8 @@ if __name__ == '__main__':
         affinity_map = {}
         for i, uuid in enumerate(host_gpus):
             start_cpu = i * n_cores
-            end_cpu = start_cpu + n_cores - 1
-            affinity_map.update({uuid: [start_cpu, end_cpu]})
+            end_cpu = start_cpu + n_cores
+            affinity_map.update({uuid: [core_idx for core_idx in range(start_cpu, end_cpu)]})
         
         logging.info("Done.")
         logging.debug(affinity_map)
@@ -63,11 +64,16 @@ if __name__ == '__main__':
             continue
 
         actor = event['Actor']
-        logging.info(f"New container started: {actor['Attributes']['name']}, {actor['ID']}")
+        logging.info(f"New container started: {actor['Attributes']['name']} from {actor['Attributes']['image']}, {actor['ID']}")
 
-        container = client.containers.get(actor['ID'])
-        print('container:', container)
-        
-        gpus = get_gpu_uids(container)
+        container = client.containers.get(actor['ID'])        
+        gpus = get_container_gpus(container)
+        if len(gpus) == 0:
+            continue
+
         logging.info(f"GPUs assigned to {actor['Attributes']['name']}: {gpus}")
+        pinned_cores = []
+        for uuid in gpus:
+            pinned_cores.extend(affinity_map[uuid])
+        container.update(cpuset_cpus=",".join(pinned_cores))
                 
