@@ -3,6 +3,7 @@
 import docker
 import logging
 import json
+import argparse
 
 def read_gpu_uids():
     """Read host GPU uuids from /etc/docker/daemon.json
@@ -23,6 +24,12 @@ def get_gpu_uids(container):
     return gpus
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Docker Swarm cpu auto-pinner",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--pinning_mode', type=str, default="auto", 
+                        help='if auto, distribute cpu cores evenly among host GPUs')
+    args = parser.parse_args()
+    
     logging.basicConfig(level=logging.INFO)
     client = docker.from_env()
     
