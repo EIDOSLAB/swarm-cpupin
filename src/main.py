@@ -75,5 +75,7 @@ if __name__ == '__main__':
         pinned_cores = []
         for uuid in gpus:
             pinned_cores.extend(affinity_map[uuid])
-        container.update(cpuset_cpus=",".join(pinned_cores))
+        cpuset_cpus = ",".join(pinned_cores)
+        container.update(cpuset_cpus=cpuset_cpus)
+        logging.info(f'Pinned cores {cpuset_cpus}')
                 
