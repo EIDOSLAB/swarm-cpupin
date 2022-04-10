@@ -1,17 +1,8 @@
-FROM eidos-service.di.unito.it/eidos-base-pytorch:1.10.0
+FROM python:3.9.12-slim
 
-# Copy source files and make it owned by the group eidoslab
-# and give write permission to the group
-COPY src /src
-RUN chmod 775 /src
-RUN chown -R :1337 /src
+RUN pip install docker
 
-# Do the same with the data folder (default /data)
-# you can change the path as you wish
-RUN mkdir /data
-RUN chmod 775 /data
-RUN chown -R :1337 /data
+COPY src /app
+WORKDIR /app
 
-WORKDIR /src
-
-ENTRYPOINT ["python3"]
+ENTRYPOINT [ "/app/main.py" ]
