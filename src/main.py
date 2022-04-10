@@ -2,12 +2,19 @@
 
 import docker
 import logging
+import json
 
 def read_gpu_uids():
     """Read host GPU uuids from /etc/docker/daemon.json
        Must be mounted with -v /etc/docker/deaemon.json:/etc/docker/daemon.json
     """
-    pass
+    with open("/etc/docker/daemon.json", "r") as f:
+        data = json.load(f)
+
+    resources = data['node-generic-resources']
+    resources = filter(lambda r: 'gpu=' in r, resources)
+    resources = map(lambda r: r.replace('gpu=', ''), resources)
+    return list(resources)
 
 def get_gpu_uids(container):
     config = client.api.inspect_container(actor['ID'])['Config']
@@ -19,7 +26,10 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     client = docker.from_env()
     
-    filters = {'Type': 'container', 'Action': 'start'}
+    host_gpus = read_gpu_uids()
+    logging.info('Host gpus: ' + ','.join(host_gpus))
+
+    logging.info('Starting listener..')
     for event in client.events(decode=True):
         if not (event['Type'] == 'container' and event['Action'] == 'start'):
             continue
