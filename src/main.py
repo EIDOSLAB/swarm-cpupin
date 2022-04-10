@@ -4,6 +4,7 @@ import docker
 import logging
 import json
 import argparse
+import os
 
 def read_gpu_uids():
     """Read host GPU uuids from /etc/docker/daemon.json
@@ -29,12 +30,32 @@ if __name__ == '__main__':
     parser.add_argument('--pinning_mode', type=str, default="auto", 
                         help='if auto, distribute cpu cores evenly among host GPUs')
     args = parser.parse_args()
-    
+
     logging.basicConfig(level=logging.INFO)
-    client = docker.from_env()
+
+    cpu_count = os.cpu_count()
+    logging.info(f"Host has {cpu_count} CPUs available")
     
     host_gpus = read_gpu_uids()
     logging.info('Host gpus: ' + ','.join(host_gpus))
+
+    # Number of cores per each GPUs
+    if args.pinning_mode == "auto":
+        n_cores = cpu_count // len(host_gpus)
+        logging.info(f"Pinning mode set to auto: reserving {n_cores} cores per GPU")
+        
+        logging.info("Building GPU-CPU affinity map..")
+        affinity_map = {}
+        for i, uuid in enumerate(host_gpus):
+            start_cpu = i * n_cores
+            end_cpu = start_cpu + n_cores - 1
+            affinity_map.update({uuid: [start_cpu, end_cpu]})
+        
+        logging.info("Done.")
+        logging.debug(affinity_map)
+
+    logging.info("Connecting to docker daemon..")
+    client = docker.from_env()
 
     logging.info('Starting listener..')
     for event in client.events(decode=True):
