@@ -50,7 +50,7 @@ if __name__ == '__main__':
         for i, uuid in enumerate(host_gpus):
             start_cpu = i * n_cores
             end_cpu = start_cpu + n_cores
-            affinity_map.update({uuid: [core_idx for core_idx in range(start_cpu, end_cpu)]})
+            affinity_map.update({uuid: [str(core_idx) for core_idx in range(start_cpu, end_cpu)]})
         
         logging.info("Done.")
         logging.debug(affinity_map)
