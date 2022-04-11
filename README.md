@@ -1,6 +1,6 @@
 # Swarm CPU pinner
 
-## Automatic CPU pinning for docker-swarm-based GPU HPC cluster 
+## Automatic CPU pinning for Docker Swarm GPU HPC cluster 
 
 - Docker swarm does not support the ```--cpuset-cpus``` argument.
 - This package provides a way to automatically assign a predefined set of cores to a swarm service, based on the GPU(s) it is using.
