@@ -23,7 +23,7 @@ def get_container_gpus(container):
     env = config['Env']
     gpus = filter(lambda venv: "DOCKER_RESOURCE_GPU" in venv, env)
     gpus = map(lambda venv: venv.replace("DOCKER_RESOURCE_GPU=", ""), gpus)
-    return list(gpus)
+    return list(gpus)[0].split(",")
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format=f"%(levelname)s::{os.getenv('HOSTNAME')}::%(name)s - %(message)s")
