@@ -38,7 +38,7 @@ docker service create \
     --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \ 
     --mount type=bind,source=/etc/docker/daemon.json,destination=/etc/docker/daemon.json \
     --hostname {{.Service.Name}}-{{.Node.Hostname}} \
-    --name ghcr.io/eidoslab/swarm-cpupin:1.0.2
+    --name ghcr.io/eidoslab/swarm-cpupin:1.0.3
 ```
 
 Now, when you deploy swarm services with 
